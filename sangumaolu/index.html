@@ -1,136 +1,826 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>三顾茅庐</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>三顾茅庐 · 互动版（无测验）</title>
 
 <style>
-body{
-  margin:0;
-  font-family: "Microsoft YaHei", sans-serif;
-  background:#0f172a;
-  color:white;
-}
+  :root{
+    --bg:#0f172a;
+    --card:#1e293b;
+    --card2:#111827;
+    --text:#e2e8f0;
+    --muted:#94a3b8;
+    --accent:#facc15;
+    --accent2:#38bdf8;
+    --shadow: 0 20px 60px rgba(0,0,0,.6);
+    --radius:20px;
+  }
 
-.container{
-  max-width:1000px;
-  margin:40px auto;
-  background:#1e293b;
-  border-radius:20px;
-  overflow:hidden;
-  box-shadow:0 20px 60px rgba(0,0,0,0.6);
-}
+  *{ box-sizing:border-box; }
+  html{ scroll-behavior:smooth; }
+  body{
+    margin:0;
+    font-family:"Microsoft YaHei", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    background:var(--bg);
+    color:white;
+  }
 
-.image-section{
-  position:relative;
-  height:400px;
-  overflow:hidden;
-}
+  /* 顶部阅读进度条 */
+  .progress{
+    position:fixed;
+    top:0; left:0;
+    height:4px;
+    width:0%;
+    background:linear-gradient(90deg, var(--accent), var(--accent2));
+    z-index:9999;
+  }
 
-.image-section img{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-}
+  .container{
+    max-width:1100px;
+    margin:28px auto 60px;
+    background:var(--card);
+    border-radius:var(--radius);
+    overflow:hidden;
+    box-shadow:var(--shadow);
+  }
 
-.tag{
-  position:absolute;
-  top:20px;
-  left:20px;
-  background:rgba(0,0,0,0.6);
-  padding:8px 14px;
-  border-radius:20px;
-  font-size:14px;
-  color:#facc15;
-}
+  /* 顶部封面 */
+  .image-section{
+    position:relative;
+    height:420px;
+    overflow:hidden;
+    background:#000;
+  }
+  .image-section img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    transform: scale(1.06);
+    filter:saturate(1.05) contrast(1.05);
+    transition: transform .6s ease;
+    will-change: transform;
+  }
+  .image-section:hover img{ transform: scale(1.10); }
 
-.content{
-  padding:30px;
-}
+  .overlay{
+    position:absolute;
+    inset:0;
+    background: linear-gradient(180deg, rgba(0,0,0,.10), rgba(15,23,42,.92));
+    pointer-events:none;
+  }
 
-h1{
-  margin:0;
-  font-size:34px;
-}
+  .tag{
+    position:absolute;
+    top:18px;
+    left:18px;
+    background:rgba(0,0,0,0.55);
+    padding:8px 14px;
+    border-radius:999px;
+    font-size:13px;
+    color:var(--accent);
+    border:1px solid rgba(250,204,21,.25);
+    backdrop-filter: blur(6px);
+  }
 
-.section{
-  margin-bottom:30px;
-}
+  .hero{
+    position:absolute;
+    left:26px;
+    bottom:22px;
+    right:26px;
+    display:flex;
+    gap:16px;
+    align-items:flex-end;
+    justify-content:space-between;
+  }
 
-.section-title{
-  font-size:18px;
-  letter-spacing:2px;
-  color:#facc15;
-  margin-bottom:10px;
-}
+  .hero h1{
+    margin:0;
+    font-size:38px;
+    letter-spacing:1px;
+    line-height:1.1;
+  }
+  .hero p{
+    margin:8px 0 0;
+    color:rgba(226,232,240,.88);
+    max-width:740px;
+    line-height:1.6;
+  }
 
-.text{
-  line-height:1.8;
-  color:#e2e8f0;
-}
+  .hero .chips{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    justify-content:flex-end;
+  }
+  .chip{
+    border:1px solid rgba(148,163,184,.25);
+    background:rgba(17,24,39,.55);
+    color:var(--text);
+    padding:8px 12px;
+    border-radius:999px;
+    font-size:12px;
+    cursor:pointer;
+    transition: transform .15s ease, border-color .15s ease;
+    user-select:none;
+    backdrop-filter: blur(6px);
+  }
+  .chip:hover{ transform: translateY(-1px); border-color: rgba(250,204,21,.4); }
+  .chip.active{ border-color: rgba(56,189,248,.55); }
+
+  /* 内容 */
+  .content{ padding:28px; }
+
+  .grid{
+    display:grid;
+    grid-template-columns: 280px 1fr;
+    gap:18px;
+  }
+
+  /* 左侧导航 */
+  .side{
+    position:sticky;
+    top:18px;
+    align-self:start;
+    background:rgba(17,24,39,.55);
+    border:1px solid rgba(148,163,184,.18);
+    border-radius:16px;
+    padding:14px;
+    backdrop-filter: blur(10px);
+  }
+  .side h2{
+    font-size:14px;
+    color:var(--accent);
+    letter-spacing:2px;
+    margin:4px 0 10px;
+  }
+  .nav a{
+    display:block;
+    text-decoration:none;
+    color:var(--text);
+    padding:10px 10px;
+    border-radius:12px;
+    border:1px solid transparent;
+    transition: background .15s ease, border-color .15s ease;
+    font-size:14px;
+  }
+  .nav a:hover{
+    background:rgba(30,41,59,.55);
+    border-color: rgba(148,163,184,.18);
+  }
+  .nav a.active{
+    background:rgba(30,41,59,.8);
+    border-color: rgba(250,204,21,.35);
+  }
+
+  .mini{
+    margin-top:12px;
+    padding-top:12px;
+    border-top:1px dashed rgba(148,163,184,.22);
+    color:var(--muted);
+    font-size:12px;
+    line-height:1.6;
+  }
+
+  /* 主区块 */
+  section{
+    background:rgba(17,24,39,.45);
+    border:1px solid rgba(148,163,184,.16);
+    border-radius:16px;
+    padding:18px 18px;
+    margin-bottom:16px;
+  }
+
+  .section-title{
+    font-size:16px;
+    letter-spacing:2px;
+    color:var(--accent);
+    margin:0 0 10px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+
+  .text{
+    line-height:1.9;
+    color:var(--text);
+  }
+
+  /* 时间线/卡片布局（复用） */
+  .cards{
+    display:grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap:10px;
+    margin-top:12px;
+  }
+  .cards.four{ grid-template-columns: repeat(4, 1fr); }
+  .cards.two{ grid-template-columns: repeat(2, 1fr); }
+
+  .tcard{
+    background:rgba(30,41,59,.55);
+    border:1px solid rgba(148,163,184,.18);
+    border-radius:14px;
+    padding:14px;
+    cursor:pointer;
+    transition: transform .15s ease, border-color .15s ease;
+    min-height:92px;
+  }
+  .tcard:hover{ transform: translateY(-2px); border-color: rgba(56,189,248,.45); }
+  .tcard .k{
+    color:var(--accent2);
+    font-weight:700;
+    font-size:14px;
+  }
+  .tcard .d{
+    color:var(--muted);
+    margin-top:6px;
+    font-size:13px;
+    line-height:1.6;
+  }
+
+  /* 折叠卡片（隆中对） */
+  .accordion{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    margin-top:10px;
+  }
+  details{
+    background:rgba(30,41,59,.55);
+    border:1px solid rgba(148,163,184,.18);
+    border-radius:14px;
+    overflow:hidden;
+  }
+  summary{
+    list-style:none;
+    padding:14px 14px;
+    cursor:pointer;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+    user-select:none;
+  }
+  summary::-webkit-details-marker{ display:none; }
+  .sum-title{
+    display:flex;
+    gap:10px;
+    align-items:center;
+    font-weight:700;
+    color:#fff;
+  }
+  .badge{
+    font-size:12px;
+    color:var(--accent);
+    border:1px solid rgba(250,204,21,.35);
+    padding:4px 10px;
+    border-radius:999px;
+    background:rgba(15,23,42,.55);
+  }
+  details .panel{
+    padding:0 14px 14px;
+    color:var(--text);
+    line-height:1.8;
+  }
+  .hint{
+    color:var(--muted);
+    font-size:13px;
+    margin-top:6px;
+  }
+
+  /* 名句卡片 + 复制按钮 */
+  .quote{
+    background:rgba(30,41,59,.55);
+    border:1px solid rgba(148,163,184,.18);
+    border-radius:14px;
+    padding:14px;
+    margin-top:10px;
+  }
+  .quote .qtext{
+    color:var(--text);
+    line-height:1.9;
+    font-size:14px;
+  }
+  .quote .qmeta{
+    margin-top:10px;
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
+    align-items:center;
+    color:var(--muted);
+    font-size:12px;
+  }
+  .btn{
+    border:1px solid rgba(148,163,184,.22);
+    background:rgba(17,24,39,.55);
+    color:white;
+    border-radius:12px;
+    padding:8px 10px;
+    cursor:pointer;
+    transition: border-color .15s ease, transform .15s ease;
+  }
+  .btn:hover{ border-color: rgba(250,204,21,.35); transform: translateY(-1px); }
+  .toast{
+    position:fixed;
+    left:50%;
+    bottom:22px;
+    transform:translateX(-50%);
+    background:rgba(17,24,39,.92);
+    border:1px solid rgba(148,163,184,.22);
+    color:var(--text);
+    padding:10px 14px;
+    border-radius:999px;
+    display:none;
+    z-index:9999;
+    backdrop-filter: blur(10px);
+  }
+  .toast.show{ display:block; }
+
+  /* 返回顶部 */
+  .toTop{
+    position:fixed;
+    right:18px;
+    bottom:18px;
+    background:rgba(17,24,39,.75);
+    border:1px solid rgba(148,163,184,.22);
+    color:white;
+    padding:10px 12px;
+    border-radius:999px;
+    cursor:pointer;
+    display:none;
+    box-shadow: 0 14px 40px rgba(0,0,0,.45);
+    backdrop-filter: blur(10px);
+    z-index:9999;
+  }
+  .toTop:hover{ border-color: rgba(56,189,248,.55); }
+
+  /* 弹窗 */
+  .modal{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.55);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    z-index:9998;
+  }
+  .modal.show{ display:flex; }
+  .modal-card{
+    width:min(760px, 100%);
+    background:rgba(17,24,39,.96);
+    border:1px solid rgba(148,163,184,.22);
+    border-radius:18px;
+    box-shadow: var(--shadow);
+    overflow:hidden;
+  }
+  .modal-head{
+    padding:14px 16px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    border-bottom:1px solid rgba(148,163,184,.18);
+  }
+  .modal-head strong{ color:var(--accent); letter-spacing:1px; }
+  .close{
+    cursor:pointer;
+    border:1px solid rgba(148,163,184,.22);
+    background:rgba(30,41,59,.55);
+    color:white;
+    border-radius:12px;
+    padding:8px 10px;
+  }
+  .close:hover{ border-color: rgba(250,204,21,.35); }
+  .modal-body{
+    padding:16px;
+    color:var(--text);
+    line-height:1.85;
+  }
+
+  /* 响应式 */
+  @media (max-width: 980px){
+    .grid{ grid-template-columns: 1fr; }
+    .side{ position:relative; top:0; }
+    .cards{ grid-template-columns:1fr; }
+    .cards.four{ grid-template-columns:1fr; }
+    .hero{ flex-direction:column; align-items:flex-start; }
+    .hero .chips{ justify-content:flex-start; }
+  }
 </style>
 </head>
 
 <body>
+<div class="progress" id="progress"></div>
 
 <div class="container">
-
-  <div class="image-section">
-	  <img src="sangumaolu.jpg" alt="三顾茅庐">
+  <div class="image-section" id="top">
+    <img src="sangumaolu.jpg" alt="三顾茅庐" id="heroImg">
+    <div class="overlay"></div>
     <div class="tag">中国历史典故 · 东汉末年</div>
+
+    <div class="hero">
+      <div>
+        <h1>三顾茅庐</h1>
+      </div>
+      <div class="chips" id="chips">
+        <div class="chip" data-jump="#intro">简介</div>
+        <div class="chip" data-jump="#bg">背景</div>
+        <div class="chip" data-jump="#story">三顾</div>
+        <div class="chip" data-jump="#plan">隆中对</div>
+        <div class="chip" data-jump="#people">人物</div>
+        <div class="chip" data-jump="#map">地图</div>
+        <div class="chip" data-jump="#quotes">名句</div>
+      </div>
+    </div>
   </div>
 
   <div class="content">
+    <div class="grid">
+      <!-- 左侧导航 -->
+      <aside class="side">
+        <h2>目录</h2>
+        <nav class="nav" id="nav">
+          <a href="#intro">简介</a>
+          <a href="#bg">故事背景</a>
+          <a href="#story">三次拜访</a>
+          <a href="#plan">隆中对</a>
+          <a href="#people">主要人物</a>
+          <a href="#map">战略地图</a>
+          <a href="#quotes">名句收藏</a>
+        </nav>
+      </aside>
 
-    <h1>三顾茅庐</h1>
+      <!-- 主内容 -->
+      <main>
+        <section id="intro">
+          <h3 class="section-title">简介</h3>
+          <div class="text">
+            三顾茅庐是中国历史上著名的典故，讲述东汉末年刘备为邀请隐居的诸葛亮出山辅佐，
+            三次拜访其茅庐，最终以诚意打动诸葛亮，成就了一段千古传颂的君臣佳话。
+          </div>
+        </section>
 
-    <!-- 简介 -->
-    <div class="section">
-      <div class="section-title">简介</div>
-      <div class="text">
-        三顾茅庐是中国历史上著名的典故，讲述了东汉末年刘备
-        为邀请隐居的诸葛亮出山辅佐，三次拜访其茅庐，
-        最终以诚意打动诸葛亮，成就了一段千古传颂的君臣佳话。
-      </div>
+        <section id="bg">
+          <h3 class="section-title">故事背景</h3>
+          <div class="text">
+            东汉末年，天下大乱，群雄并起。刘备在中原战败后投靠荆州刘表，为复兴汉室而四处招纳贤才。
+            名士徐庶与司马徽向他推荐了隐居在隆中（今湖北襄阳一带）、人称“卧龙”的诸葛亮。
+          </div>
+        </section>
+
+        <section id="story">
+          <h3 class="section-title">三次拜访</h3>
+          <div class="text">点下面任意卡片，弹出更详细的情节与人物心态。</div>
+
+          <div class="cards three">
+            <div class="tcard" data-modal="v1">
+              <div class="k">第一次</div>
+              <div class="d">诸葛亮外出未归，刘备失望而回。</div>
+            </div>
+            <div class="tcard" data-modal="v2">
+              <div class="k">第二次</div>
+              <div class="d">风雪再访未遇，刘备留书表达敬意。</div>
+            </div>
+            <div class="tcard" data-modal="v3">
+              <div class="k">第三次</div>
+              <div class="d">诸葛亮午睡，刘备门外恭候。</div>
+            </div>
+          </div>
+        </section>
+
+        <section id="plan">
+          <h3 class="section-title">隆中对</h3>
+          <div class="text">
+            “隆中对”可以理解为诸葛亮给刘备的总体战略建议：先稳住局面，再形成三足鼎立，最后寻找机会统一中原。
+          </div>
+
+          <div class="accordion">
+            <details>
+              <summary>
+                <div class="sum-title">
+                  <span class="badge">第一步</span>
+                  联合孙权，稳住外部
+                </div>
+                <span class="hint">点击展开</span>
+              </summary>
+              <div class="panel">
+                当时曹操势大，正面硬拼不现实。诸葛亮建议与孙权结盟，避免被各个击破，
+                先争取生存空间与战略缓冲，为后续发展争取时间。
+              </div>
+            </details>
+
+            <details>
+              <summary>
+                <div class="sum-title">
+                  <span class="badge">第二步</span>
+                  占据荆州与益州，建立根据地
+                </div>
+                <span class="hint">点击展开</span>
+              </summary>
+              <div class="panel">
+                荆州地理要冲、交通便利；益州（四川一带）易守难攻、物产丰饶。
+                拿下这两块，就能形成稳定的大后方与资源供给。
+              </div>
+            </details>
+
+            <details>
+              <summary>
+                <div class="sum-title">
+                  <span class="badge">第三步</span>
+                  形成三足鼎立，待机北伐
+                </div>
+                <span class="hint">点击展开</span>
+              </summary>
+              <div class="panel">
+                形成魏、蜀、吴三方对峙后，再根据时局变化寻找北伐机会，
+                逐步夺回中原，实现“兴复汉室”的政治目标。
+              </div>
+            </details>
+          </div>
+        </section>
+
+        <section id="people">
+          <h3 class="section-title">主要人物</h3>
+          <div class="text">点击人物卡片，弹出更详细的人物定位与在本故事中的作用。</div>
+
+          <div class="cards four">
+            <div class="tcard" data-modal="lb">
+              <div class="k">刘备</div>
+              <div class="d">求贤若渴，以诚意打动卧龙。</div>
+            </div>
+            <div class="tcard" data-modal="zgl">
+              <div class="k">诸葛亮</div>
+              <div class="d">提出隆中对，奠定蜀汉战略。</div>
+            </div>
+            <div class="tcard" data-modal="gy">
+              <div class="k">关羽</div>
+              <div class="d">忠义象征，陪同前往隆中。</div>
+            </div>
+            <div class="tcard" data-modal="zf">
+              <div class="k">张飞</div>
+              <div class="d">性格直率，起初不理解三顾。</div>
+            </div>
+          </div>
+        </section>
+
+        <section id="map">
+          <h3 class="section-title">战略地图</h3>
+          <div class="text">这些地点对应“隆中对”战略中的关键位置：隐居地、交通要冲与后方根据地。</div>
+
+          <div class="cards three">
+            <div class="tcard" data-modal="longzhong">
+              <div class="k">隆中</div>
+              <div class="d">卧龙隐居之地，隆中对诞生地。</div>
+            </div>
+            <div class="tcard" data-modal="jingzhou">
+              <div class="k">荆州</div>
+              <div class="d">连接南北，进可攻退可守。</div>
+            </div>
+            <div class="tcard" data-modal="yizhou">
+              <div class="k">益州</div>
+              <div class="d">地形险要，资源丰富的大后方。</div>
+            </div>
+          </div>
+        </section>
+
+        <section id="quotes">
+          <h3 class="section-title">名句收藏</h3>
+
+          <div class="quote">
+            <div class="qtext" id="q1">“诚以待贤，贤必以智报之。”</div>
+            <div class="qmeta">
+              <span>主题：尊重人才 · 诚意与等待</span>
+              <button class="btn" data-copy="#q1">复制</button>
+            </div>
+          </div>
+
+          <div class="quote">
+            <div class="qtext" id="q2">“三顾之礼，不在次数，而在心意。”</div>
+            <div class="qmeta">
+              <span>主题：求贤若渴 · 领导力</span>
+              <button class="btn" data-copy="#q2">复制</button>
+            </div>
+          </div>
+
+          <div class="quote">
+            <div class="qtext" id="q3">“先立足，再谋远；先求存，再图胜。”</div>
+            <div class="qmeta">
+              <span>主题：隆中对 · 战略思维</span>
+              <button class="btn" data-copy="#q3">复制</button>
+            </div>
+          </div>
+        </section>
+
+      </main>
     </div>
-
-    <!-- 故事背景 -->
-    <div class="section">
-      <div class="section-title">故事背景</div>
-      <div class="text">
-        东汉末年，天下大乱，群雄并起。刘备在中原战败后
-        投靠荆州刘表，为复兴汉室而四处招纳贤才。
-        名士徐庶与司马徽向他推荐了隐居在隆中
-        （今湖北襄阳，一说河南南阳）、人称“卧龙”的诸葛亮。
-      </div>
-    </div>
-
-    <!-- 故事内容 -->
-    <div class="section">
-      <div class="section-title">故事内容</div>
-      <div class="text">
-        刘备与关羽、张飞三次前往隆中拜访诸葛亮。<br><br>
-
-        第一次拜访时，诸葛亮外出未归，刘备失望而回。<br><br>
-
-        第二次拜访时，刘备等人冒着风雪再次前往，
-        但诸葛亮又被朋友邀走，刘备留下书信表达敬佩之意。<br><br>
-
-        第三次拜访时，刘备选择吉日再次前往。
-        到达时诸葛亮正在午睡，刘备便在门外恭敬等候，
-        直至诸葛亮醒来。<br><br>
-
-        诸葛亮被刘备的诚意打动，为他分析天下形势，
-        提出了著名的“隆中对”战略：联合孙权，占据荆州和益州，
-        形成三足鼎立之势，待时机成熟再北伐中原。
-        刘备大为叹服，拜诸葛亮为军师，
-        诸葛亮从此出山辅佐。
-      </div>
-    </div>
-
   </div>
 </div>
 
+<button class="toTop" id="toTop">↑ 返回顶部</button>
+<div class="toast" id="toast">已复制到剪贴板</div>
+
+<!-- 弹窗 -->
+<div class="modal" id="modal">
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-head">
+      <strong id="modalTitle">标题</strong>
+      <button class="close" id="closeModal">关闭</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+  // ---------- 顶部阅读进度 ----------
+  const progress = document.getElementById('progress');
+  function updateProgress(){
+    const doc = document.documentElement;
+    const scrollTop = doc.scrollTop;
+    const height = doc.scrollHeight - doc.clientHeight;
+    const pct = height > 0 ? (scrollTop / height) * 100 : 0;
+    progress.style.width = pct.toFixed(2) + '%';
+  }
+  window.addEventListener('scroll', updateProgress);
+  updateProgress();
+
+  // ---------- 返回顶部按钮 ----------
+  const toTop = document.getElementById('toTop');
+  window.addEventListener('scroll', () => {
+    toTop.style.display = (window.scrollY > 500) ? 'block' : 'none';
+  });
+  toTop.addEventListener('click', () => window.scrollTo({top:0, behavior:'smooth'}));
+
+  // ---------- 顶部 chips 跳转 ----------
+  document.getElementById('chips').addEventListener('click', (e) => {
+    const chip = e.target.closest('.chip');
+    if(!chip) return;
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    const sel = chip.getAttribute('data-jump');
+    const el = document.querySelector(sel);
+    if(el) el.scrollIntoView({behavior:'smooth', block:'start'});
+  });
+
+  // ---------- 左侧导航高亮（IntersectionObserver） ----------
+  const navLinks = Array.from(document.querySelectorAll('#nav a'));
+  const sections = navLinks.map(a => document.querySelector(a.getAttribute('href')));
+
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if(entry.isIntersecting){
+        navLinks.forEach(a => a.classList.remove('active'));
+        const id = '#' + entry.target.id;
+        const active = navLinks.find(a => a.getAttribute('href') === id);
+        if(active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-30% 0px -60% 0px', threshold: 0.01 });
+
+  sections.forEach(s => s && io.observe(s));
+
+  // ---------- 时间线/人物/地图弹窗 ----------
+  const modal = document.getElementById('modal');
+  const modalTitle = document.getElementById('modalTitle');
+  const modalBody = document.getElementById('modalBody');
+  const closeModal = document.getElementById('closeModal');
+
+  const MODAL_DATA = {
+    // 三顾
+    v1: {
+      title: "第一次拜访：求贤若渴，但未能相见",
+      body: "刘备带着关羽、张飞前往隆中，结果诸葛亮外出不在。<br><br>" +
+            "这一趟“扑空”并没有让刘备放弃，反而更坚定要请到卧龙的决心：真正的贤才，值得等待。"
+    },
+    v2: {
+      title: "第二次拜访：风雪再访，留下诚意",
+      body: "第二次拜访，刘备等人冒着风雪而来，却仍未能见到诸葛亮。<br><br>" +
+            "刘备留下书信，表达敬佩与求贤之意。这里的重点是：不是“碰运气”，而是“持续表达态度”。"
+    },
+    v3: {
+      title: "第三次拜访：门外恭候，打动卧龙",
+      body: "第三次拜访时，诸葛亮正在午睡。刘备没有催促，选择在门外恭敬等候，直到诸葛亮醒来。<br><br>" +
+            "这份“尊重与耐心”是故事最经典的一笔：君主以礼待才，才愿以智辅君。随后诸葛亮提出“隆中对”。"
+    },
+
+    // 人物
+    lb:{
+      title:"刘备",
+      body:"汉室宗亲，以仁义著称。<br><br>" +
+           "在“三顾茅庐”里，他展现出领导者最重要的品质之一：尊重人才、愿意付出耐心与诚意。<br><br>" +
+           "对比关羽、张飞的急躁，刘备的坚持更能突出‘求贤若渴’的主题。"
+    },
+    zgl:{
+      title:"诸葛亮",
+      body:"号“卧龙”，隆中隐居耕读。<br><br>" +
+           "他并不是因为权势才出山，而是被刘备的诚意与理想打动。<br><br>" +
+           "提出“隆中对”，为刘备规划了从立足到扩张、再到北伐的整体路线。"
+    },
+    gy:{
+      title:"关羽",
+      body:"刘备义弟，武艺高强，以忠义闻名。<br><br>" +
+           "陪同刘备前往隆中，代表了‘跟随者’对领袖决策的支持。<br><br>" +
+           "在故事里，他的存在也让“三顾”显得更庄重：不是一个人的请求，而是团队对贤才的敬重。"
+    },
+    zf:{
+      title:"张飞",
+      body:"性格直率勇猛，行动力强。<br><br>" +
+           "最初不理解刘备为何屡次登门，甚至对等待感到不耐烦。<br><br>" +
+           "这种反差反而强化了刘备的诚意：越有人不耐烦，越能突出刘备的坚持与礼贤下士。"
+    },
+
+    // 地点 / 战略
+    longzhong:{
+      title:"隆中",
+      body:"位于今湖北襄阳附近（传统说法）。<br><br>" +
+           "诸葛亮在此隐居，也是“隆中对”诞生地。<br><br>" +
+           "从叙事角度看，隆中象征‘人才不在庙堂，而在民间’——需要主动去寻找。"
+    },
+    jingzhou:{
+      title:"荆州",
+      body:"连接南北的战略要冲。<br><br>" +
+           "占据荆州意味着拥有交通与资源通道：进可北上，退可南守。<br><br>" +
+           "在隆中对中，它既是通向中原的跳板，也是与孙权合作的关键枢纽。"
+    },
+    yizhou:{
+      title:"益州",
+      body:"今四川盆地，地形险要、物产丰饶。<br><br>" +
+           "拿下益州能获得稳定的大后方：易守难攻、资源充足。<br><br>" +
+           "这就是诸葛亮战略的核心思路之一：先把‘根基’扎牢，再谈统一。"
+    }
+  };
+
+  document.querySelectorAll('.tcard').forEach(card => {
+    card.addEventListener('click', () => {
+      const key = card.getAttribute('data-modal');
+      const data = MODAL_DATA[key];
+      if(!data) return;
+      modalTitle.textContent = data.title;
+      modalBody.innerHTML = data.body;
+      modal.classList.add('show');
+    });
+  });
+
+  function hideModal(){ modal.classList.remove('show'); }
+  closeModal.addEventListener('click', hideModal);
+  modal.addEventListener('click', (e) => { if(e.target === modal) hideModal(); });
+  window.addEventListener('keydown', (e) => { if(e.key === 'Escape') hideModal(); });
+
+  // ---------- 复制名句 ----------
+  const toast = document.getElementById('toast');
+  function showToast(msg="已复制到剪贴板"){
+    toast.textContent = msg;
+    toast.classList.add('show');
+    setTimeout(()=>toast.classList.remove('show'), 1200);
+  }
+
+  document.querySelectorAll('[data-copy]').forEach(btn=>{
+    btn.addEventListener('click', async ()=>{
+      const sel = btn.getAttribute('data-copy');
+      const el = document.querySelector(sel);
+      if(!el) return;
+      const text = el.textContent.trim();
+      try{
+        await navigator.clipboard.writeText(text);
+        showToast("✅ 已复制");
+      }catch(err){
+        // 兼容：某些环境不允许 clipboard
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        showToast("✅ 已复制");
+      }
+    });
+  });
+
+  // ---------- 简单视差：滚动时轻微移动封面图 ----------
+  const heroImg = document.getElementById('heroImg');
+  window.addEventListener('scroll', () => {
+    const y = window.scrollY;
+    const offset = Math.min(24, y * 0.03);
+    heroImg.style.transform = `translateY(${offset}px) scale(1.06)`;
+  });
+
+  // ---------- 滚动渐显动画 ----------
+  const reveal = new IntersectionObserver(entries=>{
+    entries.forEach(entry=>{
+      if(entry.isIntersecting){
+        entry.target.style.opacity = 1;
+        entry.target.style.transform = "translateY(0px)";
+        reveal.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.08 });
+
+  document.querySelectorAll("section").forEach(sec=>{
+    sec.style.opacity = 0;
+    sec.style.transform = "translateY(40px)";
+    sec.style.transition = "all .6s ease";
+    reveal.observe(sec);
+  });
+</script>
 </body>
 </html>
